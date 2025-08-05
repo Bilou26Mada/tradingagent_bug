@@ -55,10 +55,32 @@ const TradingAgentsHome = () => {
       setCLILaunched(true);
       const response = await axios.post(`${API}/trading/launch-cli`);
       console.log("CLI lancée:", response.data);
-      alert("Interface CLI TradingAgents lancée avec succès !\n\nPrêt pour l'analyse financière avec DeepSeek.");
+      
+      // Afficher les détails du lancement de la CLI
+      const cliDetails = `Interface CLI TradingAgents lancée avec succès !
+
+Configuration:
+• Commande: ${response.data.cli_info?.command}
+• Répertoire: ${response.data.cli_info?.working_directory}
+• Modèle LLM: ${response.data.cli_info?.configuration?.llm_model}
+• Backend URL: ${response.data.cli_info?.configuration?.backend_url}
+
+APIs configurées:
+${response.data.cli_info?.configuration?.apis_configured?.map(api => `• ${api}`).join('\n')}
+
+Prochaines étapes:
+${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
+
+      alert(cliDetails);
+      
+      // Optionnel: Afficher la sortie CLI si disponible
+      if (response.data.cli_output) {
+        console.log("Sortie CLI:", response.data.cli_output);
+      }
+      
     } catch (error) {
       console.error("Erreur lors du lancement de la CLI:", error);
-      alert("Erreur lors du lancement de la CLI. Vérifiez les logs.");
+      alert(`Erreur lors du lancement de la CLI: ${error.response?.data?.message || error.message}`);
       setCLILaunched(false);
     }
   };
