@@ -172,15 +172,124 @@ const TradingAgentsHome = () => {
             </div>
           )}
 
-          <div className="text-center">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold mr-4 transition-colors">
-              🖥️ Interface CLI
+          <div className="text-center mb-6">
+            <button 
+              onClick={launchCLI}
+              disabled={cliLaunched}
+              className={`${cliLaunched ? 'bg-green-500' : 'bg-blue-500 hover:bg-blue-600'} text-white px-8 py-3 rounded-full text-lg font-semibold mr-4 transition-colors`}
+            >
+              {cliLaunched ? '✅ CLI Lancée' : '🖥️ Lancer Interface CLI'}
+            </button>
+            <button 
+              onClick={testDeepSeek}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold mr-4 transition-colors"
+            >
+              🧠 Tester DeepSeek
             </button>
             <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors">
               📚 Documentation API
             </button>
           </div>
         </div>
+
+        {/* Configuration d'Analyse */}
+        <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
+          <h2 className="text-4xl font-bold text-center text-gray-800 mb-6">⚙️ Configuration d'Analyse</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Ticker Symbol:
+              </label>
+              <input
+                type="text"
+                value={analysisConfig.ticker}
+                onChange={(e) => setAnalysisConfig({...analysisConfig, ticker: e.target.value.toUpperCase()})}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="NVDA"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Date d'Analyse:
+              </label>
+              <input
+                type="date"
+                value={analysisConfig.analysis_date}
+                onChange={(e) => setAnalysisConfig({...analysisConfig, analysis_date: e.target.value})}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Profondeur de Recherche:
+            </label>
+            <select
+              value={analysisConfig.research_depth}
+              onChange={(e) => setAnalysisConfig({...analysisConfig, research_depth: parseInt(e.target.value)})}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={1}>1 - Rapide</option>
+              <option value={2}>2 - Standard</option>
+              <option value={3}>3 - Approfondie</option>
+            </select>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={startAnalysis}
+              disabled={analysisRunning}
+              className={`${analysisRunning ? 'bg-yellow-500' : 'bg-green-500 hover:bg-green-600'} text-white px-12 py-4 rounded-full text-xl font-bold transition-colors`}
+            >
+              {analysisRunning ? '🔄 Analyse en cours...' : '🚀 Démarrer l\'Analyse'}
+            </button>
+          </div>
+        </div>
+
+        {/* Résultats d'Analyse */}
+        {analysisResult && (
+          <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
+            <h2 className="text-4xl font-bold text-center text-gray-800 mb-6">📊 Résultats d'Analyse</h2>
+            
+            <div className="bg-gray-50 rounded-xl p-6 mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Configuration:</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div><strong>Ticker:</strong> {analysisResult.configuration?.ticker}</div>
+                <div><strong>Date:</strong> {analysisResult.configuration?.date}</div>
+                <div><strong>Modèle LLM:</strong> {analysisResult.configuration?.llm_model}</div>
+                <div><strong>Profondeur:</strong> {analysisResult.configuration?.research_depth}</div>
+              </div>
+            </div>
+
+            {analysisResult.progress && (
+              <div className="bg-blue-50 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Progression:</h3>
+                <div className="mb-4">
+                  <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
+                    <span>{analysisResult.progress.current_phase}</span>
+                    <span>{analysisResult.progress.completion}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                      style={{width: `${analysisResult.progress.completion}%`}}
+                    ></div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <strong>Phases:</strong> {analysisResult.progress.phases?.join(' → ')}
+                </div>
+              </div>
+            )}
+
+            <div className={`p-4 rounded-lg ${analysisResult.status === 'completed' ? 'bg-green-100 border-green-500' : 'bg-yellow-100 border-yellow-500'} border-l-4`}>
+              <p className="font-semibold">{analysisResult.message}</p>
+            </div>
+          </div>
+        )}
 
         {/* Agent Workflow */}
         <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
