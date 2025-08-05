@@ -39,6 +39,18 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class TradingAnalysisRequest(BaseModel):
+    ticker: str = "NVDA"
+    analysis_date: str = "2024-05-10"
+    analysts: List[str] = ["market", "social", "news", "fundamentals"]
+    research_depth: int = 1
+
+class TradingAnalysisResponse(BaseModel):
+    id: str
+    status: str
+    message: str
+    progress: Optional[dict] = None
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
