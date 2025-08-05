@@ -274,22 +274,76 @@ Processus d'analyse:
 async def test_deepseek_connection():
     """Test la connexion à DeepSeek"""
     try:
-        # Simuler un test de connexion DeepSeek
+        import time
+        import sys
+        sys.path.append("/app/TradingAgents")
+        
+        # Test réel de connexion DeepSeek
+        from langchain_openai import ChatOpenAI
+        
+        start_time = time.time()
+        
+        llm = ChatOpenAI(
+            model="deepseek-chat",
+            base_url="https://api.deepseek.com/v1",
+            api_key="sk-15a5df3514064313b15f2127ebd6c22c",
+            temperature=0.1,
+            timeout=10  # Timeout de 10 secondes
+        )
+        
+        # Test de connexion simple
+        response = llm.invoke("Répondez simplement: DeepSeek connecté")
+        
+        end_time = time.time()
+        latency = round((end_time - start_time) * 1000)
+        
         return {
             "status": "success",
             "message": "✅ Connexion DeepSeek testée avec succès",
             "details": {
                 "endpoint": "https://api.deepseek.com/v1",
                 "model": "deepseek-chat",
-                "api_key_status": "✅ Configurée",
-                "response_test": "DeepSeek opérationnel pour trading",
-                "latency": "~200ms"
+                "api_key_status": "✅ Configurée et valide",
+                "response_test": response.content,
+                "latency": f"{latency}ms",
+                "real_test": True
             }
         }
+        
     except Exception as e:
+        # Diagnostic détaillé de l'erreur
+        error_type = type(e).__name__
+        error_msg = str(e)
+        
+        # Identifier le type d'erreur
+        if "timeout" in error_msg.lower():
+            error_category = "Timeout - Réseau lent ou indisponible"
+        elif "api_key" in error_msg.lower() or "401" in error_msg:
+            error_category = "Erreur d'authentification - Clé API invalide"
+        elif "connection" in error_msg.lower() or "network" in error_msg.lower():
+            error_category = "Erreur réseau - Connexion impossible"
+        elif "rate" in error_msg.lower() or "429" in error_msg:
+            error_category = "Limite de taux - Trop de requêtes"
+        else:
+            error_category = "Erreur inconnue"
+        
+        logger.error(f"Erreur DeepSeek: {error_type} - {error_msg}")
+        
         return {
             "status": "error", 
-            "message": f"❌ Erreur de connexion DeepSeek: {str(e)}"
+            "message": f"❌ Erreur de connexion DeepSeek: {error_category}",
+            "details": {
+                "error_type": error_type,
+                "error_message": error_msg,
+                "endpoint": "https://api.deepseek.com/v1",
+                "api_key_status": "🔑 Configurée mais non testée",
+                "troubleshooting": {
+                    "check_network": "Vérifiez la connexion internet",
+                    "check_api_key": "Validez la clé API DeepSeek",
+                    "check_endpoint": "Confirmez que l'endpoint DeepSeek est accessible",
+                    "check_quota": "Vérifiez les limites de votre compte DeepSeek"
+                }
+            }
         }
 
 # Include the router in the main app
