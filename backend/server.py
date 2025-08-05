@@ -338,6 +338,8 @@ async def check_network_status():
             "overall_status": "❌ Erreur lors de la vérification",
             "error": str(e)
         }
+
+@api_router.get("/trading/test-deepseek")
 async def test_deepseek_connection():
     """Test la connexion à DeepSeek"""
     try:
