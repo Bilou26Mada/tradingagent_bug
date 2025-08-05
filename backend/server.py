@@ -270,7 +270,73 @@ Processus d'analyse:
             "message": f"Erreur: {str(e)}"
         }
 
-@api_router.get("/trading/test-deepseek")
+@api_router.get("/trading/network-status")
+async def check_network_status():
+    """Vérifie l'état de la connectivité réseau et des services"""
+    try:
+        import requests
+        import time
+        
+        status = {
+            "timestamp": datetime.now().isoformat(),
+            "services": {},
+            "overall_status": "unknown"
+        }
+        
+        # Test connectivité DeepSeek
+        try:
+            start_time = time.time()
+            deepseek_response = requests.get("https://api.deepseek.com/v1", timeout=5)
+            deepseek_latency = round((time.time() - start_time) * 1000)
+            
+            status["services"]["deepseek"] = {
+                "status": "✅ Accessible" if deepseek_response.status_code in [200, 404] else "⚠️ Problème",
+                "latency": f"{deepseek_latency}ms",
+                "status_code": deepseek_response.status_code
+            }
+        except Exception as e:
+            status["services"]["deepseek"] = {
+                "status": "❌ Inaccessible",
+                "error": str(e),
+                "latency": "N/A"
+            }
+        
+        # Test connectivité FinnHub
+        try:
+            start_time = time.time()
+            finnhub_response = requests.get("https://finnhub.io", timeout=5)
+            finnhub_latency = round((time.time() - start_time) * 1000)
+            
+            status["services"]["finnhub"] = {
+                "status": "✅ Accessible" if finnhub_response.status_code == 200 else "⚠️ Problème",
+                "latency": f"{finnhub_latency}ms",
+                "status_code": finnhub_response.status_code
+            }
+        except Exception as e:
+            status["services"]["finnhub"] = {
+                "status": "❌ Inaccessible",
+                "error": str(e),
+                "latency": "N/A"
+            }
+        
+        # Déterminer le statut global
+        all_services = list(status["services"].values())
+        if all("✅" in service["status"] for service in all_services):
+            status["overall_status"] = "✅ Tous les services accessibles"
+        elif any("✅" in service["status"] for service in all_services):
+            status["overall_status"] = "⚠️ Certains services ont des problèmes"
+        else:
+            status["overall_status"] = "❌ Problèmes de connectivité réseau"
+        
+        return status
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification réseau: {e}")
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "overall_status": "❌ Erreur lors de la vérification",
+            "error": str(e)
+        }
 async def test_deepseek_connection():
     """Test la connexion à DeepSeek"""
     try:
