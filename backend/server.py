@@ -355,7 +355,9 @@ async def test_deepseek_connection():
             base_url="https://api.deepseek.com/v1",
             api_key="sk-15a5df3514064313b15f2127ebd6c22c",
             temperature=0.1,
-            timeout=10  # Timeout de 10 secondes
+            timeout=20,  # Augmenter le timeout
+            max_retries=2,  # Ajouter des retries
+            request_timeout=20  # Timeout explicite
         )
         
         # Test de connexion simple
