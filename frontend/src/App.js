@@ -140,11 +140,42 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
 
   const testDeepSeek = async () => {
     try {
-      const response = await axios.get(`${API}/trading/test-deepseek`);
-      alert(`Test DeepSeek:\n${response.data.message}\n\nModèle: ${response.data.details?.model}\nLatence: ${response.data.details?.latency}`);
+      setLoading(true);
+      const response = await axios.get(`${API}/trading/test-deepseek`, {
+        timeout: 15000 // 15 secondes timeout
+      });
+      
+      const result = response.data;
+      
+      if (result.status === 'success') {
+        alert(`Test DeepSeek RÉUSSI !\n\n✅ ${result.message}\n\n📊 Modèle: ${result.details?.model}\n⚡ Latence: ${result.details?.latency}\n🔑 API Key: ${result.details?.api_key_status}\n\n📝 Réponse: ${result.details?.response_test?.substring(0, 100)}...`);
+      } else {
+        alert(`Test DeepSeek ÉCHOUÉ !\n\n❌ ${result.message}\n\n🔧 Dépannage:\n• ${result.details?.troubleshooting?.check_network}\n• ${result.details?.troubleshooting?.check_api_key}\n• ${result.details?.troubleshooting?.check_endpoint}\n\n📋 Erreur: ${result.details?.error_message}`);
+      }
+      
     } catch (error) {
       console.error("Erreur test DeepSeek:", error);
-      alert("Erreur lors du test DeepSeek.");
+      
+      let errorMessage = "Test DeepSeek ÉCHOUÉ - Erreur Réseau !\n\n";
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage += "⏱️ Timeout: La connexion a pris trop de temps\n";
+      } else if (error.code === 'NETWORK_ERROR') {
+        errorMessage += "🌐 Erreur Réseau: Impossible de joindre le serveur\n";
+      } else if (error.response) {
+        errorMessage += `🚫 Erreur HTTP: ${error.response.status} - ${error.response.statusText}\n`;
+      } else {
+        errorMessage += `❌ Erreur: ${error.message}\n`;
+      }
+      
+      errorMessage += "\n🔧 Solutions à essayer:\n";
+      errorMessage += "• Vérifiez votre connexion internet\n";
+      errorMessage += "• Rechargez la page et réessayez\n";
+      errorMessage += "• Contactez l'administrateur si le problème persiste";
+      
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
