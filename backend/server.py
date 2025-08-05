@@ -272,7 +272,7 @@ print("🎯 Fin de l'analyse TradingAgents")
         
         # Lancer l'analyse en arrière-plan
         process = subprocess.Popen(
-            ["python", analysis_script_path],
+            ["/root/.venv/bin/python", analysis_script_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
