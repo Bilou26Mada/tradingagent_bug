@@ -112,7 +112,9 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
       console.log("📡 Envoi requête à l'API:", `${API}/trading/analyze`);
       
       // Lancer l'analyse réelle via l'API
-      const response = await axios.post(`${API}/trading/analyze`, analysisConfig);
+      const response = await axios.post(`${API}/trading/analyze`, analysisConfig, {
+        timeout: 30000 // 30 secondes timeout
+      });
       
       console.log("📊 Réponse API reçue:", response.data);
       
