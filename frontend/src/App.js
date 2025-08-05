@@ -87,6 +87,7 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
 
   const startAnalysis = async () => {
     try {
+      console.log("🚀 Début de l'analyse avec config:", analysisConfig);
       setAnalysisRunning(true);
       setAnalysisResult(null); // Reset des résultats précédents
       
@@ -108,8 +109,12 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
         }
       });
       
+      console.log("📡 Envoi requête à l'API:", `${API}/trading/analyze`);
+      
       // Lancer l'analyse réelle via l'API
       const response = await axios.post(`${API}/trading/analyze`, analysisConfig);
+      
+      console.log("📊 Réponse API reçue:", response.data);
       
       // Mettre à jour avec les vrais résultats
       setAnalysisResult({
@@ -118,13 +123,17 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
       });
       setAnalysisRunning(false);
       
+      console.log("✅ Analyse terminée et résultats mis à jour");
+      
     } catch (error) {
-      console.error("Erreur lors du démarrage de l'analyse:", error);
+      console.error("❌ Erreur lors du démarrage de l'analyse:", error);
+      console.error("Détails erreur:", error.response?.data);
       setAnalysisRunning(false);
       setAnalysisResult({
         status: "error",
-        message: `Erreur lors de l'analyse de ${analysisConfig.ticker}: ${error.message}`,
-        configuration: analysisConfig
+        message: `Erreur lors de l'analyse de ${analysisConfig.ticker}: ${error.response?.data?.message || error.message}`,
+        configuration: analysisConfig,
+        error_details: error.response?.data || error.message
       });
     }
   };
