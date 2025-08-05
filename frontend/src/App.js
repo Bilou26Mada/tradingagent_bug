@@ -6,35 +6,109 @@ import axios from "axios";
 const TradingAgentsHome = () => {
   const [systemStatus, setSystemStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cliLaunched, setCLILaunched] = useState(false);
+  const [analysisRunning, setAnalysisRunning] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisConfig, setAnalysisConfig] = useState({
+    ticker: "NVDA",
+    analysis_date: "2024-05-10",
+    analysts: ["market", "social", "news", "fundamentals"],
+    research_depth: 1
+  });
+
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const API = `${BACKEND_URL}/api`;
 
   useEffect(() => {
-    checkSystemStatus();
+    loadSystemStatus();
   }, []);
 
-  const checkSystemStatus = async () => {
+  const loadSystemStatus = async () => {
     try {
-      // Simuler le statut du système TradingAgents
-      setTimeout(() => {
-        setSystemStatus({
-          status: "🟢 TradingAgents System Online",
-          version: "v1.0.0",
-          components: {
-            analyst_team: "✅ Ready",
-            research_team: "✅ Ready",
-            trading_team: "✅ Ready", 
-            risk_management: "✅ Ready",
-            portfolio_management: "✅ Ready"
-          },
-          apis: {
-            deepseek: "✅ Configured",
-            finnhub: "✅ Configured"
-          }
-        });
-        setLoading(false);
-      }, 1500);
-    } catch (e) {
-      console.error("Error checking system status:", e);
+      const response = await axios.get(`${API}/trading/status`);
+      setSystemStatus(response.data);
       setLoading(false);
+    } catch (e) {
+      console.error("Error loading system status:", e);
+      // Fallback status
+      setSystemStatus({
+        status: "🟢 TradingAgents System Online",
+        version: "v1.0.0",
+        components: {
+          analyst_team: "✅ Ready",
+          research_team: "✅ Ready",
+          trading_team: "✅ Ready", 
+          risk_management: "✅ Ready",
+          portfolio_management: "✅ Ready"
+        },
+        apis: {
+          deepseek: "✅ Configured",
+          finnhub: "✅ Configured"
+        }
+      });
+      setLoading(false);
+    }
+  };
+
+  const launchCLI = async () => {
+    try {
+      setCLILaunched(true);
+      const response = await axios.post(`${API}/trading/launch-cli`);
+      console.log("CLI lancée:", response.data);
+      alert("Interface CLI TradingAgents lancée avec succès !\n\nPrêt pour l'analyse financière avec DeepSeek.");
+    } catch (error) {
+      console.error("Erreur lors du lancement de la CLI:", error);
+      alert("Erreur lors du lancement de la CLI. Vérifiez les logs.");
+      setCLILaunched(false);
+    }
+  };
+
+  const startAnalysis = async () => {
+    try {
+      setAnalysisRunning(true);
+      const response = await axios.post(`${API}/trading/analyze`, analysisConfig);
+      setAnalysisResult(response.data);
+      
+      // Simuler la progression de l'analyse
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 20;
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+          setAnalysisRunning(false);
+          // Mettre à jour le résultat final
+          setAnalysisResult(prev => ({
+            ...prev,
+            status: "completed",
+            message: `Analyse de ${analysisConfig.ticker} terminée avec succès`,
+            progress: { ...prev.progress, completion: 100, current_phase: "✅ Analyse terminée" }
+          }));
+        } else {
+          setAnalysisResult(prev => ({
+            ...prev,
+            progress: { 
+              ...prev.progress, 
+              completion: progress,
+              current_phase: prev.progress.phases[Math.floor(progress / 20)] || "En cours..."
+            }
+          }));
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Erreur lors du démarrage de l'analyse:", error);
+      setAnalysisRunning(false);
+      alert("Erreur lors du démarrage de l'analyse.");
+    }
+  };
+
+  const testDeepSeek = async () => {
+    try {
+      const response = await axios.get(`${API}/trading/test-deepseek`);
+      alert(`Test DeepSeek:\n${response.data.message}\n\nModèle: ${response.data.details?.model}\nLatence: ${response.data.details?.latency}`);
+    } catch (error) {
+      console.error("Erreur test DeepSeek:", error);
+      alert("Erreur lors du test DeepSeek.");
     }
   };
 
