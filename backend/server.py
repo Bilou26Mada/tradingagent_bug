@@ -143,7 +143,7 @@ print("\\n🎯 CLI TradingAgents prête pour l'analyse financière!")
         
         # Lancer le script en arrière-plan
         process = subprocess.Popen(
-            ["python", cli_script_path],
+            ["/root/.venv/bin/python", cli_script_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
