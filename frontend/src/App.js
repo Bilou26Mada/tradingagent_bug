@@ -297,6 +297,12 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
               'bg-blue-100 border-blue-500'
             }`}>
               <p className="font-bold text-lg">{analysisResult.message}</p>
+              {analysisResult.status === 'error' && analysisResult.error_details && (
+                <div className="mt-2 p-2 bg-red-50 rounded">
+                  <p className="text-sm text-red-700"><strong>Détails:</strong></p>
+                  <pre className="text-xs text-red-600 mt-1">{JSON.stringify(analysisResult.error_details, null, 2)}</pre>
+                </div>
+              )}
             </div>
             
             {/* Configuration d'analyse */}
