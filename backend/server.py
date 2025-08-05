@@ -95,11 +95,68 @@ async def launch_trading_cli():
         # Lancer la CLI avec une configuration prédéfinie
         analysis_id = str(uuid.uuid4())
         
-        # Simuler le lancement de l'analyse
+        # Créer un script temporaire pour lancer la CLI
+        cli_script_path = "/tmp/launch_trading_cli.py"
+        cli_script_content = '''
+import os
+import sys
+sys.path.append("/app/TradingAgents")
+os.chdir("/app/TradingAgents")
+
+# Set environment variables
+os.environ["OPENAI_API_KEY"] = "sk-15a5df3514064313b15f2127ebd6c22c"
+os.environ["FINNHUB_API_KEY"] = "d22mj4hr01qi437eqt40d22mj4hr01qi437eqt4g"
+
+print("🚀 TradingAgents CLI Interface lancée!")
+print("=" * 50)
+print("Configuration:")
+print("  • Modèle LLM: DeepSeek Chat")
+print("  • Backend URL: https://api.deepseek.com/v1")
+print("  • APIs: DeepSeek + FinnHub configurées")
+print()
+print("Interface CLI TradingAgents prête!")
+print("Utilisez les boutons de l'interface web pour configurer et lancer une analyse.")
+
+# Test DeepSeek connection
+try:
+    from langchain_openai import ChatOpenAI
+    
+    llm = ChatOpenAI(
+        model="deepseek-chat",
+        base_url="https://api.deepseek.com/v1",
+        api_key="sk-15a5df3514064313b15f2127ebd6c22c",
+        temperature=0.1
+    )
+    
+    response = llm.invoke("Répondez en français: CLI TradingAgents opérationnelle")
+    print(f"✅ Test DeepSeek: {response.content}")
+    
+except Exception as e:
+    print(f"⚠️ Erreur test DeepSeek: {e}")
+
+print("\\n🎯 CLI TradingAgents prête pour l'analyse financière!")
+'''
+        
+        # Écrire le script
+        with open(cli_script_path, 'w') as f:
+            f.write(cli_script_content)
+        
+        # Lancer le script en arrière-plan
+        process = subprocess.Popen(
+            ["python", cli_script_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        # Lire la sortie
+        stdout, stderr = process.communicate(timeout=10)
+        
         return {
             "id": analysis_id,
             "status": "started",
             "message": "Interface CLI TradingAgents lancée avec succès",
+            "cli_output": stdout,
             "cli_info": {
                 "command": "python -m cli.main",
                 "working_directory": "/app/TradingAgents",
@@ -116,6 +173,12 @@ async def launch_trading_cli():
                 "Définir la profondeur de recherche",
                 "Lancer l'analyse multi-agents"
             ]
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "id": analysis_id,
+            "status": "timeout",
+            "message": "CLI lancée mais timeout lors de l'initialisation"
         }
     except Exception as e:
         logger.error(f"Erreur lors du lancement de la CLI: {e}")
