@@ -259,27 +259,38 @@ const TradingAgentsHome = () => {
           <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
             <h2 className="text-4xl font-bold text-center text-gray-800 mb-6">📊 Résultats d'Analyse</h2>
             
+            {/* Status de l'analyse */}
+            <div className={`p-4 rounded-lg mb-6 border-l-4 ${
+              analysisResult.status === 'completed' ? 'bg-green-100 border-green-500' : 
+              analysisResult.status === 'error' ? 'bg-red-100 border-red-500' :
+              'bg-blue-100 border-blue-500'
+            }`}>
+              <p className="font-bold text-lg">{analysisResult.message}</p>
+            </div>
+            
+            {/* Configuration d'analyse */}
             <div className="bg-gray-50 rounded-xl p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Configuration:</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">⚙️ Configuration:</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div><strong>Ticker:</strong> {analysisResult.configuration?.ticker}</div>
                 <div><strong>Date:</strong> {analysisResult.configuration?.date}</div>
-                <div><strong>Modèle LLM:</strong> {analysisResult.configuration?.llm_model}</div>
+                <div><strong>Modèle:</strong> {analysisResult.configuration?.llm_model}</div>
                 <div><strong>Profondeur:</strong> {analysisResult.configuration?.research_depth}</div>
               </div>
             </div>
 
+            {/* Progression */}
             {analysisResult.progress && (
               <div className="bg-blue-50 rounded-xl p-6 mb-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Progression:</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">📈 Progression:</h3>
                 <div className="mb-4">
                   <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
                     <span>{analysisResult.progress.current_phase}</span>
                     <span>{analysisResult.progress.completion}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 rounded-full h-4">
                     <div 
-                      className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                      className="bg-blue-500 h-4 rounded-full transition-all duration-500"
                       style={{width: `${analysisResult.progress.completion}%`}}
                     ></div>
                   </div>
@@ -290,8 +301,50 @@ const TradingAgentsHome = () => {
               </div>
             )}
 
-            <div className={`p-4 rounded-lg ${analysisResult.status === 'completed' ? 'bg-green-100 border-green-500' : 'bg-yellow-100 border-yellow-500'} border-l-4`}>
-              <p className="font-semibold">{analysisResult.message}</p>
+            {/* Sortie détaillée de l'analyse */}
+            {analysisResult.analysis_output && (
+              <div className="bg-gray-900 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-white mb-4">🔍 Rapport Détaillé:</h3>
+                <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap overflow-x-auto max-h-96">
+                  {analysisResult.analysis_output}
+                </pre>
+              </div>
+            )}
+
+            {/* Recommandations */}
+            {analysisResult.recommendations && (
+              <div className="bg-yellow-50 rounded-xl p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">💡 Recommandations:</h3>
+                <div className="mb-4">
+                  <p className="font-semibold">{analysisResult.recommendations.system_status}</p>
+                </div>
+                {analysisResult.recommendations.next_steps && (
+                  <div>
+                    <p className="font-semibold mb-2">Prochaines étapes:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {analysisResult.recommendations.next_steps.map((step, index) => (
+                        <li key={index}>{step}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Boutons d'action */}
+            <div className="text-center">
+              <button
+                onClick={() => setAnalysisResult(null)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg mr-4"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => startAnalysis()}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+              >
+                Relancer l'Analyse
+              </button>
             </div>
           </div>
         )}
