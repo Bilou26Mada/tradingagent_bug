@@ -417,6 +417,56 @@ async def test_deepseek_connection():
             }
         }
 
+@api_router.get("/trading/test-deepseek-quick")
+async def test_deepseek_quick():
+    """Test rapide DeepSeek sans LangChain"""
+    try:
+        # Test direct avec requests - plus rapide et fiable
+        response = requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": "Bearer sk-15a5df3514064313b15f2127ebd6c22c",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [{"role": "user", "content": "Test"}],
+                "max_tokens": 3
+            },
+            timeout=8  # Timeout court
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "status": "success",
+                "message": "✅ DeepSeek OK (test rapide)",
+                "details": {
+                    "model": data.get("model", "deepseek-chat"),
+                    "response": data["choices"][0]["message"]["content"] if data.get("choices") else "OK",
+                    "tokens_used": data.get("usage", {}).get("total_tokens", 0)
+                }
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"❌ Erreur DeepSeek: HTTP {response.status_code}",
+                "details": {"response": response.text[:200]}
+            }
+            
+    except requests.exceptions.Timeout:
+        return {
+            "status": "error",
+            "message": "❌ Timeout DeepSeek (>8s)",
+            "details": {"help": "Réessayez ou vérifiez votre connexion"}
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"❌ Erreur réseau DeepSeek: {str(e)[:100]}",
+            "details": {"error_type": type(e).__name__}
+        }
+
 # Include the router in the main app
 app.include_router(api_router)
 
