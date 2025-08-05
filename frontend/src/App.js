@@ -66,39 +66,44 @@ const TradingAgentsHome = () => {
   const startAnalysis = async () => {
     try {
       setAnalysisRunning(true);
-      const response = await axios.post(`${API}/trading/analyze`, analysisConfig);
-      setAnalysisResult(response.data);
+      setAnalysisResult(null); // Reset des résultats précédents
       
-      // Simuler la progression de l'analyse
-      let progress = 0;
-      const progressInterval = setInterval(() => {
-        progress += 20;
-        if (progress >= 100) {
-          clearInterval(progressInterval);
-          setAnalysisRunning(false);
-          // Mettre à jour le résultat final
-          setAnalysisResult(prev => ({
-            ...prev,
-            status: "completed",
-            message: `Analyse de ${analysisConfig.ticker} terminée avec succès`,
-            progress: { ...prev.progress, completion: 100, current_phase: "✅ Analyse terminée" }
-          }));
-        } else {
-          setAnalysisResult(prev => ({
-            ...prev,
-            progress: { 
-              ...prev.progress, 
-              completion: progress,
-              current_phase: prev.progress.phases[Math.floor(progress / 20)] || "En cours..."
-            }
-          }));
+      // Afficher immédiatement le début de l'analyse
+      setAnalysisResult({
+        status: "running",
+        message: `Démarrage de l'analyse de ${analysisConfig.ticker}...`,
+        configuration: analysisConfig,
+        progress: {
+          current_phase: "Initialisation des agents",
+          phases: [
+            "📊 Équipe d'Analyse",
+            "🔬 Équipe de Recherche", 
+            "💼 Équipe de Trading",
+            "⚠️ Gestion des Risques",
+            "💰 Gestion de Portefeuille"
+          ],
+          completion: 0
         }
-      }, 2000);
+      });
+      
+      // Lancer l'analyse réelle via l'API
+      const response = await axios.post(`${API}/trading/analyze`, analysisConfig);
+      
+      // Mettre à jour avec les vrais résultats
+      setAnalysisResult({
+        ...response.data,
+        showOutput: true // Flag pour afficher la sortie détaillée
+      });
+      setAnalysisRunning(false);
       
     } catch (error) {
       console.error("Erreur lors du démarrage de l'analyse:", error);
       setAnalysisRunning(false);
-      alert("Erreur lors du démarrage de l'analyse.");
+      setAnalysisResult({
+        status: "error",
+        message: `Erreur lors de l'analyse de ${analysisConfig.ticker}: ${error.message}`,
+        configuration: analysisConfig
+      });
     }
   };
 
