@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Test React TradingAgents</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .test { padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid; }
+        .success { background: #d4edda; border-left-color: #28a745; }
+        .error { background: #f8d7da; border-left-color: #dc3545; }
+        .warning { background: #fff3cd; border-left-color: #ffc107; }
+        button { padding: 12px 24px; margin: 8px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        pre { background: #000; color: #0f0; padding: 15px; border-radius: 5px; overflow: auto; font-size: 12px; max-height: 400px; }
+        .loading { color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 FORCE TEST REACT - TRADINGAGENTS</h1>
+        <p>Ce test force exactement les mêmes appels que React</p>
+        
+        <div>
+            <button onclick="forceTestAnalysis()" id="analyzeBtn">🚀 FORCE TEST ANALYSE</button>
+            <button onclick="testDeepSeek()">🧠 Test DeepSeek</button>
+            <button onclick="testStatus()">📊 Test Status</button>
+            <button onclick="clearResults()">🗑️ Clear</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8001/api';
+        let analysisRunning = false;
+        
+        function addResult(message, type = 'success') {
+            const div = document.createElement('div');
+            div.className = `test ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            document.getElementById('results').appendChild(div);
+            document.getElementById('results').scrollTop = document.getElementById('results').scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testStatus() {
+            addResult("📡 Test Status API...", 'warning');
+            try {
+                const response = await axios.get(`${API_URL}/trading/status`);
+                addResult(`✅ Status: ${response.data.status}`);
+                addResult(`🔧 APIs: DeepSeek=${response.data.apis.deepseek}, FinnHub=${response.data.apis.finnhub}`);
+            } catch (error) {
+                addResult(`❌ Erreur Status: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDeepSeek() {
+            addResult("🧠 Test DeepSeek...", 'warning');
+            try {
+                const response = await axios.get(`${API_URL}/trading/test-deepseek-quick`, { timeout: 12000 });
+                if (response.data.status === 'success') {
+                    addResult(`✅ DeepSeek OK: ${response.data.message}`);
+                    addResult(`📝 Réponse: "${response.data.details.response}"`);
+                } else {
+                    addResult(`❌ DeepSeek Fail: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error.code === 'ECONNABORTED') {
+                    addResult("❌ TIMEOUT DeepSeek (>12s)", 'error');
+                } else {
+                    addResult(`❌ Erreur DeepSeek: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        async function forceTestAnalysis() {
+            if (analysisRunning) {
+                addResult("⚠️ Analyse déjà en cours!", 'warning');
+                return;
+            }
+            
+            analysisRunning = true;
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Analyse en cours...';
+            
+            addResult("🚀 DÉBUT ANALYSE FORCÉE", 'warning');
+            
+            const config = {
+                ticker: "AAPL",
+                analysis_date: "2024-05-10",
+                analysts: ["market"],
+                research_depth: 1
+            };
+            
+            addResult(`⚙️ Configuration: ${JSON.stringify(config)}`);
+            
+            try {
+                addResult("📡 Envoi requête analyse...", 'warning');
+                
+                const response = await axios.post(`${API_URL}/trading/analyze`, config, {
+                    headers: {'Content-Type': 'application/json'},
+                    timeout: 35000
+                });
+                
+                addResult(`✅ SUCCÈS! Status: ${response.data.status}`);
+                addResult(`💬 Message: ${response.data.message}`);
+                
+                // Vérifier les données importantes
+                const data = response.data;
+                
+                addResult("🔍 ANALYSE DES DONNÉES REÇUES:", 'warning');
+                addResult(`• ID: ${data.id || 'MANQUANT'}`);
+                addResult(`• Status: ${data.status || 'MANQUANT'}`);
+                addResult(`• Message: ${data.message || 'MANQUANT'}`);
+                addResult(`• Configuration: ${data.configuration ? 'PRÉSENTE' : 'MANQUANTE'}`);
+                addResult(`• Progress: ${data.progress ? 'PRÉSENT' : 'MANQUANT'}`);
+                addResult(`• Analysis Output: ${data.analysis_output ? 'PRÉSENT (' + data.analysis_output.length + ' chars)' : 'MANQUANT'}`);
+                addResult(`• Recommendations: ${data.recommendations ? 'PRÉSENTES' : 'MANQUANTES'}`);
+                
+                if (data.configuration) {
+                    addResult(`📊 Config - Ticker: ${data.configuration.ticker}, Date: ${data.configuration.date}, LLM: ${data.configuration.llm_model}`);
+                }
+                
+                if (data.progress) {
+                    addResult(`📈 Progress - Phase: ${data.progress.current_phase}, Completion: ${data.progress.completion}%`);
+                }
+                
+                if (data.analysis_output) {
+                    addResult("📄 RAPPORT D'ANALYSE COMPLET:");
+                    const div = document.createElement('div');
+                    div.className = 'test success';
+                    div.innerHTML = `<pre>${data.analysis_output}</pre>`;
+                    document.getElementById('results').appendChild(div);
+                }
+                
+                if (data.recommendations) {
+                    addResult(`💡 Recommandations: ${data.recommendations.system_status}`);
+                    if (data.recommendations.next_steps) {
+                        addResult(`📋 Étapes: ${data.recommendations.next_steps.join(', ')}`);
+                    }
+                }
+                
+                addResult("🎉 ANALYSE COMPLÈTE - TOUTES DONNÉES REÇUES!", 'success');
+                
+            } catch (error) {
+                if (error.code === 'ECONNABORTED') {
+                    addResult("❌ TIMEOUT Analyse (>35s)", 'error');
+                } else if (error.response) {
+                    addResult(`❌ Erreur HTTP ${error.response.status}: ${error.response.statusText}`, 'error');
+                    if (error.response.data) {
+                        addResult(`📋 Détails: ${JSON.stringify(error.response.data)}`, 'error');
+                    }
+                } else {
+                    addResult(`❌ Erreur Analyse: ${error.message}`, 'error');
+                }
+            } finally {
+                analysisRunning = false;
+                btn.disabled = false;
+                btn.textContent = '🚀 FORCE TEST ANALYSE';
+                addResult("🏁 Test terminé", 'warning');
+            }
+        }
+        
+        // Auto-test au chargement
+        window.onload = function() {
+            addResult("🚀 Page chargée - Tests disponibles");
+            testStatus();
+        }
+    </script>
+</body>
+</html>
