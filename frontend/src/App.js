@@ -118,25 +118,22 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
       
       console.log("📊 Réponse API reçue:", response.data);
       
-      // Mettre à jour avec les vrais résultats - FORCER L'AFFICHAGE
+      // Mettre à jour avec les vrais résultats - SOLUTION RACE CONDITION
       const newResult = {
         ...response.data,
         showOutput: true,
         forceDisplay: true,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        renderKey: Date.now()
       };
       
       console.log("🔄 Mise à jour état React avec:", newResult);
+      
+      // SOLUTION: Une seule mise à jour d'état, pas de force refresh
       setAnalysisResult(newResult);
       setAnalysisRunning(false);
       
       console.log("✅ Analyse terminée et résultats mis à jour");
-      
-      // Forcer un re-render
-      setTimeout(() => {
-        console.log("🔄 Force refresh des résultats");
-        setAnalysisResult(prev => ({...prev, refreshKey: Date.now()}));
-      }, 100);
       
     } catch (error) {
       console.error("❌ Erreur lors du démarrage de l'analyse:", error);
