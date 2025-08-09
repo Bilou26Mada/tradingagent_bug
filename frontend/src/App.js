@@ -85,7 +85,7 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
     }
   };
 
-  const startAnalysis = async () => {
+  const startAnalysis = useCallback(async () => {
     try {
       console.log("🚀 Début de l'analyse avec config:", analysisConfig);
       setAnalysisRunning(true);
