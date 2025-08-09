@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test React TradingAgents</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Simple TradingAgents</h1>
+    <p>Ce test vérifie si l'interface peut communiquer avec le backend local.</p>
+    
+    <button onclick="testBackend()">Test Backend</button>
+    <button onclick="testDeepSeek()">Test DeepSeek</button>
+    <button onclick="testAnalysis()">Test Analyse</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:8001/api';
+        
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `test ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testBackend() {
+            addResult("🔄 Test backend en cours...");
+            try {
+                const response = await axios.get(`${API_URL}/trading/status`);
+                addResult(`✅ Backend OK: ${response.data.status}`);
+            } catch (error) {
+                addResult(`❌ Erreur backend: ${error.message}`, false);
+            }
+        }
+        
+        async function testDeepSeek() {
+            addResult("🧠 Test DeepSeek en cours...");
+            try {
+                const response = await axios.get(`${API_URL}/trading/test-deepseek-quick`);
+                if (response.data.status === 'success') {
+                    addResult(`✅ DeepSeek OK: ${response.data.details.response}`);
+                } else {
+                    addResult(`❌ DeepSeek échec: ${response.data.message}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Erreur DeepSeek: ${error.message}`, false);
+            }
+        }
+        
+        async function testAnalysis() {
+            addResult("📊 Test analyse en cours (peut prendre 30s)...");
+            try {
+                const response = await axios.post(`${API_URL}/trading/analyze`, {
+                    ticker: "TSLA",
+                    analysis_date: "2024-05-10",
+                    analysts: ["market"],
+                    research_depth: 1
+                });
+                
+                if (response.data.status === 'completed') {
+                    addResult(`✅ Analyse OK: ${response.data.message}`);
+                    addResult(`📈 Ticker: ${response.data.configuration.ticker}, Modèle: ${response.data.configuration.llm_model}`);
+                } else {
+                    addResult(`❌ Analyse incomplète: ${response.data.status}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Erreur analyse: ${error.message}`, false);
+            }
+        }
+        
+        // Test automatique au chargement
+        window.onload = function() {
+            addResult("🚀 Page chargée - Tests disponibles");
+            testBackend();
+        }
+    </script>
+</body>
+</html>
