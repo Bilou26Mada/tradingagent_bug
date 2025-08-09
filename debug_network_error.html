@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🚨 Debug Network Error</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .test { padding: 12px; margin: 8px 0; border-radius: 5px; border-left: 4px solid; }
+        .success { background: #d4edda; border-left-color: #28a745; }
+        .error { background: #f8d7da; border-left-color: #dc3545; }
+        .warning { background: #fff3cd; border-left-color: #ffc107; }
+        .info { background: #d1ecf1; border-left-color: #17a2b8; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .error-details { background: #000; color: #ff6b6b; padding: 10px; font-family: monospace; font-size: 12px; border-radius: 5px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 DEBUG NETWORK ERROR - TRADINGAGENTS</h1>
+        <p>Investigation approfondie de l'erreur réseau</p>
+        
+        <div>
+            <button onclick="testNetworkConnectivity()">🌐 Test Connectivité</button>
+            <button onclick="testCORS()">🔒 Test CORS</button>
+            <button onclick="testBackendDirect()">🔗 Test Backend Direct</button>
+            <button onclick="testReactAPI()">⚛️ Test Comme React</button>
+            <button onclick="clearLog()">🗑️ Clear</button>
+        </div>
+        
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            document.getElementById('log').appendChild(div);
+            document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function testNetworkConnectivity() {
+            addLog("🌐 Test de connectivité réseau de base...", 'warning');
+            
+            const tests = [
+                { name: "Frontend (3000)", url: "http://localhost:3000" },
+                { name: "Backend Root (8001)", url: "http://localhost:8001" },
+                { name: "Backend API (8001/api)", url: "http://localhost:8001/api" },
+                { name: "Google DNS", url: "https://8.8.8.8" }
+            ];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url, { 
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    addLog(`✅ ${test.name}: Accessible`, 'success');
+                } catch (error) {
+                    addLog(`❌ ${test.name}: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        async function testCORS() {
+            addLog("🔒 Test CORS en détail...", 'warning');
+            
+            try {
+                // Test OPTIONS request
+                const response = await fetch('http://localhost:8001/api/trading/status', {
+                    method: 'OPTIONS'
+                });
+                
+                addLog(`OPTIONS Status: ${response.status}`, response.status === 200 ? 'success' : 'error');
+                
+                const headers = {};
+                for (let [key, value] of response.headers.entries()) {
+                    if (key.includes('access-control')) {
+                        headers[key] = value;
+                    }
+                }
+                
+                addLog(`CORS Headers: ${JSON.stringify(headers, null, 2)}`, 'info');
+                
+            } catch (error) {
+                addLog(`❌ CORS Test Error: ${error.message}`, 'error');
+                
+                // Détails de l'erreur
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-details';
+                errorDiv.innerHTML = `
+                    <h4>🔍 Détails de l'erreur CORS:</h4>
+                    <pre>
+Type: ${error.constructor.name}
+Message: ${error.message}
+Stack: ${error.stack || 'N/A'}
+                    </pre>
+                `;
+                document.getElementById('log').appendChild(errorDiv);
+            }
+        }
+        
+        async function testBackendDirect() {
+            addLog("🔗 Test direct des endpoints backend...", 'warning');
+            
+            const endpoints = [
+                'http://localhost:8001/api/trading/status',
+                'http://localhost:8001/api/trading/test-deepseek-quick',
+                'http://localhost:8001/api/trading/network-status'
+            ];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    const data = await response.json();
+                    
+                    addLog(`✅ ${endpoint.split('/').pop()}: ${response.status} - ${data.status || data.message || 'OK'}`, 'success');
+                    
+                } catch (error) {
+                    addLog(`❌ ${endpoint.split('/').pop()}: ${error.message}`, 'error');
+                    
+                    // Log détaillé de l'erreur
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-details';
+                    errorDiv.innerHTML = `
+                        <h4>🚨 Network Error détaillée pour ${endpoint}:</h4>
+                        <pre>
+Error Type: ${error.constructor.name}
+Error Message: ${error.message}
+Error Code: ${error.code || 'N/A'}
+Endpoint: ${endpoint}
+Time: ${new Date().toISOString()}
+                        </pre>
+                    `;
+                    document.getElementById('log').appendChild(errorDiv);
+                }
+            }
+        }
+        
+        async function testReactAPI() {
+            addLog("⚛️ Test exact comme React avec Axios...", 'warning');
+            
+            // Configuration exacte comme React
+            const API_URL = 'http://localhost:8001/api';
+            
+            try {
+                // Test 1: Status comme React le fait
+                addLog("🔄 Test 1: Loading system status...", 'info');
+                const statusResponse = await axios.get(`${API_URL}/trading/status`, {
+                    timeout: 10000,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                addLog(`✅ Status OK: ${statusResponse.data.status}`, 'success');
+                
+                // Test 2: DeepSeek comme React le fait
+                addLog("🔄 Test 2: Testing DeepSeek...", 'info');
+                const deepseekResponse = await axios.get(`${API_URL}/trading/test-deepseek-quick`, {
+                    timeout: 15000
+                });
+                
+                if (deepseekResponse.data.status === 'success') {
+                    addLog(`✅ DeepSeek OK: ${deepseekResponse.data.message}`, 'success');
+                } else {
+                    addLog(`❌ DeepSeek Failed: ${deepseekResponse.data.message}`, 'error');
+                }
+                
+                // Test 3: Analysis comme React le fait
+                addLog("🔄 Test 3: Running analysis...", 'info');
+                const analysisResponse = await axios.post(`${API_URL}/trading/analyze`, {
+                    ticker: "TSLA",
+                    analysis_date: "2024-05-10",
+                    analysts: ["market"],
+                    research_depth: 1
+                }, {
+                    timeout: 30000,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (analysisResponse.data.status === 'completed') {
+                    addLog(`✅ Analysis Complete: ${analysisResponse.data.message}`, 'success');
+                    addLog(`📊 Report Length: ${analysisResponse.data.analysis_output?.length || 0} chars`, 'info');
+                } else {
+                    addLog(`❌ Analysis Failed: ${analysisResponse.data.status}`, 'error');
+                }
+                
+                addLog("🎉 TOUS LES TESTS AXIOS RÉUSSIS - Pas de Network Error!", 'success');
+                
+            } catch (error) {
+                addLog(`❌ NETWORK ERROR REPRODUITE!`, 'error');
+                
+                // Analyse détaillée de l'erreur
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-details';
+                errorDiv.innerHTML = `
+                    <h4>🚨 NETWORK ERROR DÉTECTÉE:</h4>
+                    <pre>
+=== ERREUR AXIOS ===
+Type: ${error.constructor.name}
+Message: ${error.message}
+Code: ${error.code || 'N/A'}
+Status: ${error.response?.status || 'N/A'}
+Status Text: ${error.response?.statusText || 'N/A'}
+
+=== CONFIG REQUEST ===
+URL: ${error.config?.url || 'N/A'}
+Method: ${error.config?.method || 'N/A'}
+Timeout: ${error.config?.timeout || 'N/A'}
+Headers: ${JSON.stringify(error.config?.headers || {}, null, 2)}
+
+=== RESPONSE ===
+Data: ${JSON.stringify(error.response?.data || {}, null, 2)}
+Headers: ${JSON.stringify(error.response?.headers || {}, null, 2)}
+
+=== DIAGNOSTIC ===
+Is Timeout: ${error.code === 'ECONNABORTED' ? 'YES' : 'NO'}
+Is Network: ${error.code === 'ERR_NETWORK' ? 'YES' : 'NO'}
+Is CORS: ${error.message.includes('CORS') ? 'YES' : 'NO'}
+Has Response: ${error.response ? 'YES' : 'NO'}
+
+Time: ${new Date().toISOString()}
+                    </pre>
+                `;
+                document.getElementById('log').appendChild(errorDiv);
+            }
+        }
+        
+        // Auto-test au chargement
+        window.onload = function() {
+            addLog("🚀 Debug Network Error - Démarrage des tests", 'warning');
+            testNetworkConnectivity();
+        }
+    </script>
+</body>
+</html>
