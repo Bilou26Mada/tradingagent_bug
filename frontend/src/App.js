@@ -335,6 +335,18 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
           </div>
         </div>
 
+        {/* DEBUG: État des résultats */}
+        {analysisResult && (
+          <div className="bg-yellow-100 border border-yellow-400 rounded p-4 mb-4">
+            <h3 className="font-bold">🐛 DEBUG - État des résultats:</h3>
+            <p>Status: {analysisResult.status}</p>
+            <p>Message: {analysisResult.message}</p>
+            <p>Timestamp: {analysisResult.timestamp}</p>
+            <p>Force Display: {analysisResult.forceDisplay ? 'OUI' : 'NON'}</p>
+            <p>Analysis Output: {analysisResult.analysis_output ? 'PRÉSENT' : 'ABSENT'}</p>
+          </div>
+        )}
+
         {/* Résultats d'Analyse */}
         {analysisResult && (
           <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
