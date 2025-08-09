@@ -349,7 +349,7 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
 
         {/* Résultats d'Analyse */}
         {analysisResult && (
-          <div className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
+          <div key={`analysis-${analysisResult.id}-${analysisResult.timestamp}-${Date.now()}`} className="bg-white rounded-2xl p-8 mb-8 shadow-2xl">
             <h2 className="text-4xl font-bold text-center text-gray-800 mb-6">📊 Résultats d'Analyse</h2>
             
             {/* Status de l'analyse */}
