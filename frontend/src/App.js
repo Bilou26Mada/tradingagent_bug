@@ -32,25 +32,39 @@ const TradingAgentsHome = () => {
 
   const loadSystemStatus = async () => {
     try {
-      const response = await axios.get(`${API}/trading/status`);
+      console.log('📡 Chargement status depuis:', `${API}/trading/status`);
+      const response = await axios.get(`${API}/trading/status`, {
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('✅ Status reçu:', response.data);
       setSystemStatus(response.data);
       setLoading(false);
     } catch (e) {
-      console.error("Error loading system status:", e);
-      // Fallback status
+      console.error("❌ Erreur chargement status:", e);
+      
+      // GESTION SPÉCIFIQUE NETWORK ERROR
+      if (e.code === 'ERR_NETWORK' || e.message.includes('Network Error')) {
+        console.error('🚨 NETWORK ERROR détectée');
+        alert('ERREUR RÉSEAU: Impossible de se connecter au backend. Vérifiez que le serveur backend est démarré sur http://localhost:8001');
+      }
+      
+      // Fallback status pour éviter crash complet
       setSystemStatus({
-        status: "🟢 TradingAgents System Online",
+        status: "⚠️ Backend inaccessible",
         version: "v1.0.0",
         components: {
-          analyst_team: "✅ Ready",
-          research_team: "✅ Ready",
-          trading_team: "✅ Ready", 
-          risk_management: "✅ Ready",
-          portfolio_management: "✅ Ready"
+          analyst_team: "❌ Non disponible",
+          research_team: "❌ Non disponible",
+          trading_team: "❌ Non disponible", 
+          risk_management: "❌ Non disponible",
+          portfolio_management: "❌ Non disponible"
         },
         apis: {
-          deepseek: "✅ Configured",
-          finnhub: "✅ Configured"
+          deepseek: "❌ Non testé",
+          finnhub: "❌ Non testé"
         }
       });
       setLoading(false);
