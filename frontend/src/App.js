@@ -146,7 +146,7 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
         error_details: error.response?.data || error.message
       });
     }
-  };
+  }, [analysisConfig, API]);
 
   const testDeepSeek = async () => {
     try {
