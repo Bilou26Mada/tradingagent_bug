@@ -160,11 +160,31 @@ ${response.data.next_steps?.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
       console.error("❌ Erreur lors du démarrage de l'analyse:", error);
       console.error("Détails erreur:", error.response?.data);
       setAnalysisRunning(false);
+      
+      let errorMessage = `Erreur lors de l'analyse de ${analysisConfig.ticker}: `;
+      
+      // GESTION SPÉCIFIQUE DES ERREURS RÉSEAU
+      if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        errorMessage += "ERREUR RÉSEAU - Impossible de communiquer avec le backend";
+        console.error('🚨 NETWORK ERROR dans analyse');
+        alert('ERREUR RÉSEAU: La connexion au backend a échoué pendant l\'analyse. Le backend est-il démarré?');
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage += "TIMEOUT - L'analyse a pris trop de temps";
+      } else if (error.response) {
+        errorMessage += `HTTP ${error.response.status}: ${error.response.data?.message || error.response.statusText}`;
+      } else {
+        errorMessage += error.message;
+      }
+      
       setAnalysisResult({
         status: "error",
-        message: `Erreur lors de l'analyse de ${analysisConfig.ticker}: ${error.response?.data?.message || error.message}`,
+        message: errorMessage,
         configuration: analysisConfig,
-        error_details: error.response?.data || error.message
+        error_details: {
+          type: error.code || error.name,
+          message: error.message,
+          response: error.response?.data || null
+        }
       });
     }
   }, [analysisConfig, API]);
